@@ -1,0 +1,30 @@
+{
+  "name": "refatoracao-core-agiliza",
+  "version": "1.0.0",
+  "description": "",
+  "main": ".eslintrc.js",
+  "dependencies": {
+    "@types/node": "^12.0.2",
+    "@types/selenium-webdriver": "^4.0.0",
+    "eslint": "^5.16.0",
+    "eslint-config-prettier": "^4.3.0",
+    "eslint-plugin-prettier": "^3.1.0",
+    "image-downloader": "^3.4.2",
+    "prettier": "^1.17.1",
+    "selenium-webdriver": "^4.0.0-alpha.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lu-anderson1/refatoracao-core-agiliza.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lu-anderson1/refatoracao-core-agiliza/issues"
+  },
+  "homepage": "https://github.com/lu-anderson1/refatoracao-core-agiliza#readme"
+}
