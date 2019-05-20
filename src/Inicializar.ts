@@ -95,7 +95,8 @@ class Inicializar{
         await this.validarLogin()
         await this.confirmarAnoLetivo() 
         await this.selecionarGED()  
-        await this.selecionarSubModulo()     
+        await this.selecionarSubModulo()
+        driver.close()     
     }
 }
 
