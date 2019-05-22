@@ -9,7 +9,7 @@ var driver:WebDriver
 
 export {driver}
 
-class Inicializar{
+class  Inicializar{
     private async inserirCredenciais(){        
         await driver.findElement(By.id(DadosDoSistema.idCampoLogin)).sendKeys(DadosDoUsuario.loginSigEduca)
         await driver.findElement(By.id(DadosDoSistema.idCampoSenha)).sendKeys(DadosDoUsuario.senhaSigEduca)      
@@ -58,16 +58,16 @@ class Inicializar{
         }while(urlAtual == 'http://sigeduca.seduc.mt.gov.br/geral/hwlogin2.aspx')
     }
 
-    public async validarLogin(){
+    private async validarLogin(){
         await this.converterTokenBase64ParaPng()
         await this.inserirToken()        
-        await Util.clicarPorId(DadosDoSistema.idBtnEntrar)
+        await driver.findElement(By.id(DadosDoSistema.idBtnEntrar)).click()
         await Util.aguardarAjax()
         await this.verificarErroDeToken()
     }
 
     private async confirmarAnoLetivo(){
-        await Util.aguardarCarregamentoDaPagina(DadosDoSistema.urlSegundaPagina)
+        await driver.wait(until.urlIs(DadosDoSistema.urlSegundaPagina))
         await driver.wait(until.elementLocated({ id: DadosDoSistema.idBtnConfirmarAno }))
         await driver.executeScript(DadosDoSistema.scriptSelecaoAnoLetivo) 
     }
@@ -88,15 +88,15 @@ class Inicializar{
         }
     }    
 
-    public async iniciar(){
+    public  async iniciar(){
         driver = await new Builder().forBrowser('firefox').build()
         await driver.get(DadosDoSistema.urlPaginaDeLogin)
-        await this.inserirCredenciais()        
+        await this.inserirCredenciais() 
         await this.validarLogin()
+        console.log('Login efetuado com Sucesso!!')
         await this.confirmarAnoLetivo() 
         await this.selecionarGED()  
-        await this.selecionarSubModulo()
-        driver.close()     
+        await this.selecionarSubModulo()            
     }
 }
 
