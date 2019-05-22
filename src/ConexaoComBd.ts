@@ -23,5 +23,7 @@ class ConexaoComBd{
             console.log(error.response.data.error)
         }
     }
-
 }
+
+
+export default ConexaoComBd

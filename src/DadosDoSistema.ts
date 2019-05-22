@@ -24,6 +24,8 @@ const DadosDoSistema = {
     idDisciplinaNaArea: 'span_vGRIDDESCRICAODISCIPLINAAREA_00',
     idTextoSerieAnoFase: 'span_vGRIDGERMATDSCORGMTZ_00',
     idTextoTurma: 'span_vGRIDGERTURSAL_00',
+    idCodigoObjetivo: 'span_vGEDAGRAVAOBJAPRCOD_00',
+    idTextoDoObjetivo: 'span_vGEDAGRAVAOBJAPRDSC_00',
 
     nameBtnLancarAvaliacao2: 'BUTTONLANCAR',
     

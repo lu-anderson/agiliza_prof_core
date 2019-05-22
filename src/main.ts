@@ -1,9 +1,13 @@
+import entradaNoConsole from 'readline-sync'
 import Inicializar, { driver } from './Inicializar'
 import BuscarDadosSig from './BuscarDadosNoSig'
-import entradaNoConsole from 'readline-sync'
+import ConexaoComBd from './ConexaoComBd'
+
 
 
 class Main {
+    private User:any
+    private bd = new ConexaoComBd
     constructor(){
                       
     }   
@@ -12,7 +16,15 @@ class Main {
         await new Inicializar().iniciar()
     }
 
-    irParaPáginaInicial(){}
+    private async escolasDoUser(){        
+        let escolas = await this.User._escolas.map((e:any) =>{
+            return e.nome.toUpperCase()
+        })
+        console.log(escolas)
+        return escolas        
+    }
+
+    irParaPaginaInicial(){}
 
     irParaLancarAvaliacao(){}
 
@@ -29,7 +41,9 @@ class Main {
     async app(){
         let fluxo = true
         let opcoes = ['Lancar Avaliacao', 'Buscar Dados','Trocar De Usuario' ,'Sair']
-
+        this.User = await this.bd.buscarUser('03723357130')
+        console.log(this.User._escolas[0]._id)
+        let escolas = await this.escolasDoUser()         
         console.log('Iniciando...')
         try {
             await this.inicializar()
@@ -58,10 +72,12 @@ class Main {
             if(opcoes[acao] == 'Buscar Dados'){
                 try {
                     console.log('Buscando dados ...')
-                    console.log(await this.buscarDados())
+                    let turmas = await new BuscarDadosSig().start()
                     console.log('Dados Obtidos!')
+                    await this.bd.salvarTurmas(turmas, this.User._escolas[0]._id)
                 } catch (error) {
-                    console.log('Erro ao buscar dados! Deseja tentar Novamente?')                    
+                    console.log('Erro ao buscar dados! Deseja tentar Novamente?') 
+                    console.log(error)                   
                 } 
             }
 

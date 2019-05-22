@@ -71,8 +71,7 @@ class BuscarDadosNoSig{
         }  
     }     
 
-    private async identificarAlunosPorturma(){        
-        await this.selecionarBimestreAvaliacao('2')        
+    private async identificarAlunosPorturma(){ 
         await Util.aguardarAjax()
         let numeroDeAlunos = await this.identificarNumeroDeAlunos()        
         let alunos = []        
@@ -95,6 +94,31 @@ class BuscarDadosNoSig{
             await Util.aguardarAjax()
         }         
         return alunos       
+    }
+
+    private async identificarObjetivos(){
+        let numeroDeObjetivos = 0
+        let condicaoParaSairDoWhile
+        let objetivos = []
+
+        do{
+            numeroDeObjetivos++
+            let cont = await Util.formatarContador(numeroDeObjetivos)
+            condicaoParaSairDoWhile = await driver.findElement(By.id(DadosDoSistema.idCodigoObjetivo+cont+'0001'))
+                                        .catch(() => {})           
+
+            if(condicaoParaSairDoWhile != undefined){
+                let codigoDoObjetivo = await driver.findElement(By.id(DadosDoSistema.idCodigoObjetivo+cont+'0001'))
+                                        .getText()  
+                let textoDoObjetivo = await driver.findElement(By.id(DadosDoSistema.idTextoDoObjetivo+cont+'0001'))
+                                        .getText()
+                objetivos.push({
+                    codigoDoObjetivo: codigoDoObjetivo,
+                    textoDoObjetivo: textoDoObjetivo
+                })
+            }            
+        }while(condicaoParaSairDoWhile != undefined)        
+        return objetivos  
     }
 
     public async start(){
@@ -133,7 +157,10 @@ class BuscarDadosNoSig{
                         let textoTurma = await driver.findElement(By
                             .id(DadosDoSistema.idTextoTurma + contadorFormatado)).getText()                       
                         
-                        await driver.findElement(By.id(DadosDoSistema.idBtnLancarAvaliacaoDiario+ contadorFormatado)).click()                        
+                        await driver.findElement(By.id(DadosDoSistema.idBtnLancarAvaliacaoDiario+ contadorFormatado)).click() 
+                        await this.selecionarBimestreAvaliacao('2')  
+                        await Util.aguardarAjax()   
+                        let objetivos = await this.identificarObjetivos()                                         
                         let alunos = await this.identificarAlunosPorturma()
 
                         await Util.aguardarAjax()
@@ -147,7 +174,7 @@ class BuscarDadosNoSig{
                         await driver.switchTo().defaultContent()
                           
                         turmas.push({codigoSerieAnoFaze: contadorDeSerieAnoFase, serieAnoFase: textoSerieAnoFase, disciplina: textoDisciplina, 
-                                        turma: textoTurma, numeroDoID: contadorFormatado, alunos})  
+                                        turma: textoTurma, numeroDoID: contadorFormatado, alunos, objetivos})  
                         contador++                        
                     }
                 }while (turma != undefined); 
