@@ -75,20 +75,20 @@ class BuscarDadosNoSig{
         await Util.aguardarAjax()
         let numeroDeAlunos = await this.identificarNumeroDeAlunos()        
         let alunos = []        
-        for(let i = 1; i<=2; i++){
+        for(let i = 1; i<=5; i++){
             let situacaoDoAluno = await this.verificarSituacaoDoAluno()
             let aluno = await this.identificarAluno()  
             switch(situacaoDoAluno){
                 case 'Transferido da Escola':                       
-                    await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno))
+                    await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno)).click()
                     break                                  
                 case 'alunoEspecial':                   
                     alunos.push({aluno, alunoEspecial: true}) 
-                    await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno))                    
+                    await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno)).click()                    
                     break              
                 case 'alunoNormal':                                    
                     alunos.push({aluno}) 
-                    await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno))                    
+                    await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno)).click()                    
                     break                        
             }            
             await Util.aguardarAjax()
@@ -160,9 +160,9 @@ class BuscarDadosNoSig{
                         await driver.findElement(By.id(DadosDoSistema.idBtnLancarAvaliacaoDiario+ contadorFormatado)).click() 
                         await this.selecionarBimestreAvaliacao('2')  
                         await Util.aguardarAjax()   
-                        let objetivos = await this.identificarObjetivos()                                         
+                        let objetivos = await this.identificarObjetivos()                                       
                         let alunos = await this.identificarAlunosPorturma()
-
+                        console.log(alunos)
                         await Util.aguardarAjax()
 
                         await driver.findElement(By.name('BUTTONVOLTAR_0001')).click()
@@ -174,7 +174,7 @@ class BuscarDadosNoSig{
                         await driver.switchTo().defaultContent()
                           
                         turmas.push({codigoSerieAnoFaze: contadorDeSerieAnoFase, serieAnoFase: textoSerieAnoFase, disciplina: textoDisciplina, 
-                                        turma: textoTurma, numeroDoID: contadorFormatado, alunos, objetivos})  
+                                        turma: textoTurma, numeroDoID: contadorFormatado, alunos, objetivosDeAprendizagens: objetivos})  
                         contador++                        
                     }
                 }while (turma != undefined); 
