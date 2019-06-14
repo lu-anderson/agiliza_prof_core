@@ -1,7 +1,7 @@
 let DadosDoUsuario = {
 
-    loginSigEduca: '03723357130',
-    senhaSigEduca: 'Cfx2j45152016'
+    loginSigEduca: '',
+    senhaSigEduca: ''
 }
 
 export default DadosDoUsuario

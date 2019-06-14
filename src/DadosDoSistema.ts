@@ -4,6 +4,7 @@ const DadosDoSistema = {
     urlPaginaPrincipal: 'http://sigeduca.seduc.mt.gov.br/ged/hwgedprincipal.aspx',
     urlLancarAvaliacao: 'http://sigeduca.seduc.mt.gov.br/ged/hwgedlancaravaliacao01.aspx?0,1,HWGedLancarAvaliacao.aspx%3f0%2c1',
     urlLancarDiario:'http://sigeduca.seduc.mt.gov.br/ged/hwgedlancaravaliacao01.aspx?2,0,HWGedLancarAvaliacao.aspx%3f2%2c0',
+    urlSelecionarLotacao: 'http://sigeduca.seduc.mt.gov.br/ged/hwgedselecionalotacao.aspx?322',
 
 
 
@@ -26,8 +27,12 @@ const DadosDoSistema = {
     idTextoTurma: 'span_vGRIDGERTURSAL_00',
     idCodigoObjetivo: 'span_vGEDAGRAVAOBJAPRCOD_00',
     idTextoDoObjetivo: 'span_vGEDAGRAVAOBJAPRDSC_00',
+    idInputLotacao: 'vGERLOTNOM',
+    idCodigoLotacao: 'span_vGRID_GERLOTCOD_0001',
+
 
     nameBtnLancarAvaliacao2: 'BUTTONLANCAR',
+    nameBtnAtualizarLotacao: 'BREFRESH',
     
 
 
