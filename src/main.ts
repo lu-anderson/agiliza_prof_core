@@ -1,34 +1,60 @@
 import entradaNoConsole from 'readline-sync'
+import fs from 'fs'
 import Inicializar, { driver } from './Inicializar'
 import BuscarDadosSig from './BuscarDadosNoSig'
 import ConexaoComBd from './ConexaoComBd'
-import DadosDoSistema from './DadosDoSistema';
+import DadosDoSistema from './DadosDoSistema'
 import DadosDoUsuario from './DadosDoUsuario'
-import { By } from 'selenium-webdriver';
-import { Util } from './util';
-
+import { By } from 'selenium-webdriver'
+import { Util } from './util'
 
 
 class Main {
     private User:any
     private bd = new ConexaoComBd
-    constructor(){
-                      
-    }   
-    
-    async inicializar(){
-        this.User = await this.bd.buscarUser('02462307117')
-        DadosDoUsuario.loginSigEduca = this.User.loginSigEduca
-        DadosDoUsuario.senhaSigEduca = this.User.senhaSigEduca
-        await new Inicializar().iniciar()
+     
+    private async buscarUserNoBd(){
+        try{
+            console.log('Informe o usuário: ')
+            const user = await entradaNoConsole.question('')
+            this.User = await this.bd.buscarUser(user)
+            DadosDoUsuario.loginSigEduca = this.User.loginSigEduca
+            DadosDoUsuario.senhaSigEduca = this.User.senhaSigEduca
+        }catch(error) {
+            if(error.msg === 'Usuário não encontrado'){
+                console.log(error.msg)
+                await this.buscarUserNoBd()
+            }else{
+                throw error
+            }            
+        }
     }
 
-    private async escolasDoUser(){        
-        let escolas = await this.User.escolas.map((e:string) =>{
-            return e.toUpperCase()
-        })   
-        console.log(escolas)     
-        return escolas        
+    private async iniciar(){
+        try {
+            await Inicializar.iniciar()                  
+        } catch(error) {            
+            console.log(error.msg)
+            const opcoes = ["Sim", "Nao"]
+            const acao = await entradaNoConsole.keyInSelect(opcoes, 'Deseja iniciar novamente?')
+            if(opcoes[acao] === "Sim"){
+                await this.iniciar()
+            }else{
+                throw error
+            }
+        }
+    }
+
+    private async escolasDoUser(){
+        try {
+            let escolas = await this.User.escolas.map((e:string) =>{
+                return e.toUpperCase()
+            })  
+            return escolas  
+        } catch (error) {
+            console.log('Erro no método escolasDoUser em main.ts')
+            console.log(error)
+        }     
     }
 
     irParaPaginaInicial(){}
@@ -37,45 +63,32 @@ class Main {
 
 
     async buscarDados(){
-        let turmas = await new BuscarDadosSig().start()
-        return turmas
-    }
-
-    async selecionarLotacao(escolas:any){        
-        let quantidadeDeEscolas = escolas.lenght
-        if(quantidadeDeEscolas !== 1){
-            await driver.get(DadosDoSistema.urlSelecionarLotacao)
-            await driver.findElement(By.id(DadosDoSistema.idInputLotacao)).sendKeys(escolas[0])
-            await driver.findElement(By.name(DadosDoSistema.nameBtnAtualizarLotacao))
-            await Util.aguardarAjax()
-            await driver.findElement(By.id(DadosDoSistema.idCodigoLotacao)).click()
-            await Util.aguardarAjax()
-        }
-    }
-
-    fecharDriver(){}
-
-    trocarUsuarioViaTerminal(){}
-
-
-    async app(){
         
+    }    
+
+    public async buscarUserSemDados(){
+        await this.bd.userSemDados()
+    }
+
+    public async app(){        
         let fluxo = true
-        let opcoes = ['Lancar Avaliacao', 'Buscar Dados','Trocar De Usuario' ,'Sair']
+        let opcoes = ['Trocar De Usuario' ,'Sair']
         console.log('Iniciando...')
         try {
-            await this.inicializar()
-            
-        } catch (error) {
-            console.log('Erro ao iniciar, quer tentar novamente? ', error)
-            let tentarNovamente = entradaNoConsole.keyInSelect(['Sim', 'Nao'], '')
-            if(tentarNovamente == 0){
-                await this.app()
-            }else{
-                await driver.close()
-            }
-        }        
+            await this.buscarUserNoBd()                    
+        } catch (error) {            
+            console.log('Erro ao buscarUser! ')
+            console.log(error)
+        }
 
+        try {
+            await this.iniciar()
+        } catch (error) {
+            console.log('Erro ao iniciar')
+            console.log(error.error)
+            fluxo = false
+        }
+        
         while(fluxo){
             let acao = entradaNoConsole.keyInSelect(opcoes, 'O que voce deseja fazer?')
             if(opcoes[acao] == 'Lancar Avaliacao'){
@@ -91,7 +104,7 @@ class Main {
                 try {
                     console.log('Buscando dados ...')
                     let escolas = await this.escolasDoUser() 
-                    let turmas = await new BuscarDadosSig().selecionarLotacao(escolas)
+                    let turmas = await new BuscarDadosSig().iniciar(escolas)
                     console.log('Dados Obtidos!')
                     await this.bd.salvarTurmas(turmas, this.User._id)
                 } catch (error) {
@@ -106,4 +119,4 @@ class Main {
         }
     }
 }
-new Main().app()
+new Main().buscarUserSemDados()
