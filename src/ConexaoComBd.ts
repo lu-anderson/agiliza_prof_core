@@ -23,6 +23,24 @@ class ConexaoComBd{
         }
     }
 
+    public async usersComAlteracao(){
+        try {
+            const response = await api.get('/usersComAlteracao')
+            return response.data
+        } catch (error) {
+            console.log(error.response.data.error)
+        }
+    }
+
+    public async turmasComAlteracao(userId:string){
+        try {
+            const response = await api.get(`/turmasComAlteracao/${userId}`)
+            return response.data
+        } catch (error) {
+            console.log(error.response.data.error)
+        }
+    }
+
     public async userSemDados(){
         try {
             const response = await api.get('/usersSemDados')

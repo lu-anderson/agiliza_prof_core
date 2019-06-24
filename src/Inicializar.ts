@@ -4,11 +4,11 @@ import entradaNoConsole from 'readline-sync'
 import DadosDoSistema from './DadosDoSistema'
 import DadosDoUsuario from './DadosDoUsuario'
 import { Util } from './util';
-import terminalImage = require('terminal-image');
+
 
 var driver:WebDriver
 
-export {driver}
+export {driver, By}
  abstract class Inicializar{
     private static async inserirCredenciais(){        
         await driver.findElement(By.id(DadosDoSistema.idCampoLogin)).sendKeys(DadosDoUsuario.loginSigEduca)
@@ -91,9 +91,16 @@ export {driver}
     }    
 
     public static async iniciar(){
-        try {            
+        try {
             driver = await new Builder().forBrowser('firefox').build()            
-            await driver.get(DadosDoSistema.urlPaginaDeLogin)                 
+            await driver.get(DadosDoSistema.urlPaginaDeLogin)    
+        } catch (error) {
+            throw {msg: 'Erro no método iniciar em inicializar.ts', error }
+        }
+    }
+   
+    public static async logar(){
+        try {          
             await this.inserirCredenciais()   
             await this.validarLogin()            
             console.log('Login efetuado com Sucesso!!')
@@ -101,7 +108,7 @@ export {driver}
             await this.selecionarGED()              
             await this.selecionarSubModulo()            
         } catch (error) {
-            throw {msg: 'Erro no método iniciar em inicializar.ts', error }
+            throw {msg: 'Erro no método logar em inicializar.ts', error }
         } 
     }
 }

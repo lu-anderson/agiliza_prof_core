@@ -10,8 +10,7 @@ class BuscarDadosNoSig{
             await driver.wait(until.urlIs(DadosDoSistema.urlPaginaPrincipal), 10000)
             await driver.get(DadosDoSistema.urlLancarAvaliacao) 
         } catch (error) {
-            console.log('Erro no método entrarEmLancarAvaliacao em BuscarDadosNoSig.ts')
-            console.log(error)
+            throw {msg:'Erro no método entrarEmLancarAvaliacao em BuscarDadosNoSig.ts' , error}            
         } 
     } 
     
@@ -48,8 +47,7 @@ class BuscarDadosNoSig{
             } while(guias.length == 1);  
             await driver.switchTo().window(guias[1])
         } catch (error) {
-            console.log('Erro no método selecionarBimestreAvaliacao em BuscarDadosNoSig.ts')
-            console.log(error)
+            throw {msg:'Erro no método selecionarBimestreAvaliacao em BuscarDadosNoSig.ts', error }
         }
     }
 
@@ -59,8 +57,7 @@ class BuscarDadosNoSig{
             let numeroDeAlunos = parseInt(txtNumeroDeAlunos)
             return numeroDeAlunos            
         } catch (error) {
-            console.log('Erro no método identificarNumeroDeAlunos em BuscarDadosNoSig.ts')
-            console.log(error)
+            throw {msg:'Erro no método identificarNumeroDeAlunos em BuscarDadosNoSig.ts' , error}
         }        
     }
 
@@ -69,8 +66,7 @@ class BuscarDadosNoSig{
             let aluno = await  driver.wait(until.elementLocated({id: DadosDoSistema.idAluno}),10000).getText()
          return aluno
         } catch (error) {
-            console.log('Erro no método identificarAluno em BuscarDadosNoSig.ts')
-            console.log(error)
+            throw {msg: 'Erro no método identificarAluno em BuscarDadosNoSig.ts', error}
         }  
     }
 
@@ -90,8 +86,7 @@ class BuscarDadosNoSig{
                 }
             } 
         } catch (error) {
-            console.log('Erro no método verificarSituacaoDoAluno em BuscarDadosNoSig.ts')
-            console.log(error)
+            throw {msg:'Erro no método verificarSituacaoDoAluno em BuscarDadosNoSig.ts', error }
         } 
     }     
 
@@ -120,8 +115,7 @@ class BuscarDadosNoSig{
             }         
             return alunos  
         } catch (error) {
-            console.log('Erro no método identificarAlunosPorturma em BuscarDadosNoSig.ts')
-            console.log(error)
+            throw {msg:'Erro no método identificarAlunosPorturma em BuscarDadosNoSig.ts', error }
         }     
     }
 
@@ -149,8 +143,7 @@ class BuscarDadosNoSig{
             }while(condicaoParaSairDoWhile != undefined)        
             return objetivos  
         } catch (error) {
-            console.log('Erro no método identificarObjetivos em BuscarDadosNoSig.ts')
-            console.log(error)
+            throw {msg: 'Erro no método identificarObjetivos em BuscarDadosNoSig.ts', error}          
         }
     }   
 
@@ -224,8 +217,7 @@ class BuscarDadosNoSig{
             await driver.get(DadosDoSistema.urlPaginaPrincipal)
             return turmas 
         } catch (error) {
-            console.log('Erro no método buscarTurmas em BuscarDadosNoSig.ts')
-            console.log(error)
+            throw {msg: 'Erro no método buscarTurmas em BuscarDadosNoSig.ts', error}            
         }       
     }
 
@@ -236,7 +228,7 @@ class BuscarDadosNoSig{
             let cont = 0
             let turmas:any = []        
             if(quantidadeDeEscolas !== 1){
-                while(cont < quantidadeDeEscolas){                           
+                while(cont < quantidadeDeEscolas){                     
                     await driver.get(DadosDoSistema.urlSelecionarLotacao)                    
                     await driver.findElement(By.id(DadosDoSistema.idInputLotacao)).sendKeys(escolas[cont])                    
                     await driver.findElement(By.name(DadosDoSistema.nameBtnAtualizarLotacao)).click()                    
@@ -252,8 +244,7 @@ class BuscarDadosNoSig{
             }
             return turmas
         } catch (error) {
-            console.log('Erro no método start em BuscarDadosNoSig.ts')
-            console.log(error)
+            throw {msg: 'Erro no método start em BuscarDadosNoSig.ts', error}
         }
     }
 }
