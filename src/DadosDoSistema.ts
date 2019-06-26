@@ -29,6 +29,7 @@ const DadosDoSistema = {
     idTextoDoObjetivo: 'span_vGEDAGRAVAOBJAPRDSC_00',
     idInputLotacao: 'vGERLOTNOM',
     idCodigoLotacao: 'span_vGRID_GERLOTCOD_0001',
+    idCodDisciplina: 'vDISCIPLINAAREACOD',
 
 
     nameBtnLancarAvaliacao2: 'BUTTONLANCAR',

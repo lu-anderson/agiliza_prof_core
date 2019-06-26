@@ -26,7 +26,7 @@ export {driver, By}
             matches = stringBase64.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/)
         }
         const bitmap = new Buffer(matches[2], 'base64')
-        await fs.writeFileSync('../token/token.png', bitmap, 'binary')
+        await fs.writeFileSync('../../token/token.png', bitmap, 'binary')
     }
      
     
