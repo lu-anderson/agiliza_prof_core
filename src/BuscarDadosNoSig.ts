@@ -98,10 +98,10 @@ class BuscarDadosNoSig{
             await Util.aguardarAjax()
             let numeroDeAlunos = await this.identificarNumeroDeAlunos()        
             let alunos = []        
-            for(let i = 1; i<=2; i++){
+            for(let i = 1; i<=numeroDeAlunos; i++){
                 let situacaoDoAluno = await this.verificarSituacaoDoAluno()
                 let aluno = await this.identificarAluno()  
-                switch(situacaoDoAluno){
+                switch(situacaoDoAluno){ 
                     case 'Transferido da Escola':                       
                         await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno)).click()
                         break                                  

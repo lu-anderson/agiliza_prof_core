@@ -41,12 +41,12 @@ class ConexaoComBd{
         }
     }
 
-    public async userSemDados(){
+    public async userSemDados(){    
         try {
-            const response = await api.get('/usersSemDados')
-            return response.data
+            const response = await api.get('/usersSemDados')            
+            return response.data            
         } catch (error) {
-            console.log(error.response.data.error)
+            console.log(error)
         }
     }
 
