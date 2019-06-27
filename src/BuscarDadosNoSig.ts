@@ -54,7 +54,7 @@ class BuscarDadosNoSig{
         }
     }
 
-    private async identificarNumeroDeAlunos(){
+    /*private async identificarNumeroDeAlunos(){
         try {
             let txtNumeroDeAlunos = await driver.findElement({id: DadosDoSistema.idNumeroDeAlunos}).getText()
             let numeroDeAlunos = parseInt(txtNumeroDeAlunos)
@@ -62,6 +62,34 @@ class BuscarDadosNoSig{
         } catch (error) {
             throw {msg:'Erro no método identificarNumeroDeAlunos em BuscarDadosNoSig.ts' , error}
         }        
+    }*/
+    private async identificarNumeroDeAlunos(){ 
+        let contSemformatar = 0
+        let condicaoParaSairDoWhile
+        let numeroDeAlunos = 0       
+        try{            
+            await driver.findElement(By.id(DadosDoSistema.idSelecionarAlunoParaAvaliar)).click()
+            await this.entrarNosFrames()
+            do{
+                contSemformatar++
+                let cont = await Util.formatarContador(contSemformatar)
+                let tituloTabela = await driver.wait(until.elementLocated({ id: 'TTITULO' }),20000)
+                await driver.wait(until.elementIsVisible(tituloTabela), 20000) 
+                condicaoParaSairDoWhile = await driver.findElement(By.id(DadosDoSistema.idAlunoParaAvaliar+cont)).catch(()=>{})
+                if(condicaoParaSairDoWhile != undefined){                    
+                    let disponivelParaAvaliar = await driver.findElement(By.id(DadosDoSistema.idDisponivelParaAvaliar+cont)).getAttribute('src')                    
+                    if(disponivelParaAvaliar === 'http://sigeduca.seduc.mt.gov.br/ged/imagem/check.gif'){
+                        numeroDeAlunos++
+                    }                    
+                }
+            }while(condicaoParaSairDoWhile != undefined)
+            await driver.findElement(By.name(DadosDoSistema.nameBtnFecharAlunosParaAvaliar)).click()
+            await driver.switchTo().defaultContent()                        
+            await driver.switchTo().defaultContent()           
+            return numeroDeAlunos
+        } catch (error) {
+            throw {msg:'Erro no método identificarNumeroDeAlunos em BuscarDadosNoSig.ts', error }
+        }     
     }
 
     private identificarAluno = async() =>{  
