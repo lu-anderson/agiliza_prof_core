@@ -30,10 +30,16 @@ const DadosDoSistema = {
     idInputLotacao: 'vGERLOTNOM',
     idCodigoLotacao: 'span_vGRID_GERLOTCOD_0001',
     idCodDisciplina: 'vDISCIPLINAAREACOD',
+    idSelecionarAlunoParaAvaliar: 'vFSELECTIONALUNOS',
+    idOrdenAlunoParaAvaliar: 'span_vGGEDMATORDDIA_00',
+    idAlunoParaAvaliar: 'span_vGGEDALUNOM_00',
+    idDisponivelParaAvaliar: 'vGSELECTION_00',
 
 
     nameBtnLancarAvaliacao2: 'BUTTONLANCAR',
     nameBtnAtualizarLotacao: 'BREFRESH',
+    nameBtnFecharAlunosParaAvaliar: 'BUTTONFECHAR',
+
     
 
 

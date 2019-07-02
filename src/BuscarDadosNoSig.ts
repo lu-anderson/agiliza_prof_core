@@ -85,9 +85,15 @@ class BuscarDadosNoSig{
             }while(condicaoParaSairDoWhile != undefined)
             await driver.findElement(By.name(DadosDoSistema.nameBtnFecharAlunosParaAvaliar)).click()
             await driver.switchTo().defaultContent()                        
-            await driver.switchTo().defaultContent()           
+            await driver.switchTo().defaultContent() 
+            //Existe um elemento que fica impedindo de clicar, isso trata esse problema.
+            let elemento = await driver.findElement(By.id('GB_overlay')).catch(() => {})
+            if(elemento != undefined){
+                await driver.wait(until.stalenessOf(elemento), 10000)
+            }           
             return numeroDeAlunos
         } catch (error) {
+            console.log(error)
             throw {msg:'Erro no método identificarNumeroDeAlunos em BuscarDadosNoSig.ts', error }
         }     
     }
@@ -126,7 +132,7 @@ class BuscarDadosNoSig{
             await Util.aguardarAjax()
             let numeroDeAlunos = await this.identificarNumeroDeAlunos()        
             let alunos = []        
-            for(let i = 1; i<=2; i++){
+            for(let i = 1; i<=numeroDeAlunos; i++){
                 let situacaoDoAluno = await this.verificarSituacaoDoAluno()
                 let aluno = await this.identificarAluno()  
                 switch(situacaoDoAluno){
@@ -146,6 +152,7 @@ class BuscarDadosNoSig{
             }         
             return alunos  
         } catch (error) {
+            console.log(error)
             throw {msg:'Erro no método identificarAlunosPorturma em BuscarDadosNoSig.ts', error }
         }     
     }
@@ -223,7 +230,7 @@ class BuscarDadosNoSig{
                         let disciplinaTxt = await disciplina.getText()
                         await disciplina.click()
                         await Util.aguardarAjax()
-                        await this.selecionarBimestreAvaliacao('2')
+                        await this.selecionarBimestreAvaliacao('4')
                         await Util.aguardarAjax()   
                         let objetivos = await this.identificarObjetivos()                         
                         if(contDisciplina === 2){
@@ -293,7 +300,7 @@ class BuscarDadosNoSig{
                             
                             await driver.findElement(By.id(DadosDoSistema.idBtnLancarAvaliacaoDiario+ contadorFormatado)).click() 
                             await this.entrarNosFrames()
-                            await this.selecionarBimestreAvaliacao('2')  
+                            await this.selecionarBimestreAvaliacao('4')  
                             await Util.aguardarAjax()   
                             let objetivos = await this.identificarObjetivos()                                       
                             let alunos = await this.identificarAlunosPorturma()                        
