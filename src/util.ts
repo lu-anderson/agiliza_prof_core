@@ -1,7 +1,7 @@
 import {until} from 'selenium-webdriver'
 import entradaNoConsole from 'readline-sync'
 import {driver} from './Inicializar'
-import DadosDoSistema from './DadosDoSistema';
+import {DadosDoSistema} from './DadosDoSistema';
 
 
 export  abstract class Util{
@@ -21,14 +21,14 @@ export  abstract class Util{
     
     public static async aguardarAjax(){
         //console.log('Ajax')
-        let ajax = await driver.wait(until.elementLocated({ id: 'gx_ajax_notification' }),10000)        
+        let ajax = await driver.wait(until.elementLocated({ id: 'gx_ajax_notification' }),60000)        
         let visible = await ajax.isDisplayed()    
         if(visible){       
-            //console.log('Ajax ON') 
+            console.log('Ajax ON') 
             await driver.wait(until.elementIsNotVisible(ajax),10000).catch(() => {return})
             return visible    
         }else{        
-            //await console.log('Ajax OFF') 
+            console.log('Ajax OFF') 
             return visible
         }        
     }

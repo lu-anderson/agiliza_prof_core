@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-var onLine = 'http://agiliza-com-br.umbler.net/'
+var onLine = 'https://www.agilizaon.com.br'
 var offLine = 'http://localhost:3000'
 const api = axios.create({
     baseURL: offLine

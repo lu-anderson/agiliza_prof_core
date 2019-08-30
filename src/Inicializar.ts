@@ -1,7 +1,7 @@
 import {Builder, By, until, WebDriver} from 'selenium-webdriver'
 import fs from 'fs'
 import entradaNoConsole from 'readline-sync'
-import DadosDoSistema from './DadosDoSistema'
+import {DadosDoSistema} from './DadosDoSistema'
 import DadosDoUsuario from './DadosDoUsuario'
 import { Util } from './util';
 
@@ -81,7 +81,14 @@ export {driver, By}
     }
 
     private static async selecionarSubModulo(){
+        let statusDoCarregamento
+        while(statusDoCarregamento !== 'complete'){
+            statusDoCarregamento = await driver.executeScript('return document.readyState')
+            console.log(statusDoCarregamento)
+        }
+        await Util.aguardarAjax()        
         let urlAtual = await driver.getCurrentUrl()
+        console.log(urlAtual)
         let regex = new RegExp('hwgedselecionamodulo');
         if (urlAtual.match(regex)) {                
             let el = await driver.wait(until.elementLocated({ id:  DadosDoSistema.idSelecionarSubModulo}),10000)    
@@ -105,8 +112,10 @@ export {driver, By}
             await this.validarLogin()            
             console.log('Login efetuado com Sucesso!!')
             await this.confirmarAnoLetivo()             
-            await this.selecionarGED()              
-            await this.selecionarSubModulo()            
+            await this.selecionarGED() 
+            console.log('Teste 01')             
+            await this.selecionarSubModulo()   
+            console.log('Teste 02')        
         } catch (error) {
             throw {msg: 'Erro no método logar em inicializar.ts', error }
         } 

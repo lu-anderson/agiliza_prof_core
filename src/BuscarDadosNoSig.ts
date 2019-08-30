@@ -1,6 +1,6 @@
 import {driver} from './Inicializar'
-import { until, By } from 'selenium-webdriver';
-import DadosDoSistema from './DadosDoSistema';
+import { until, By, Key, Button, Origin } from 'selenium-webdriver';
+import {DadosDoSistema} from './DadosDoSistema';
 import { Util } from './util';
 
 
@@ -10,6 +10,7 @@ class BuscarDadosNoSig{
             await driver.wait(until.urlIs(DadosDoSistema.urlPaginaPrincipal), 10000)
             await driver.get(DadosDoSistema.urlLancarAvaliacao) 
         } catch (error) {
+            console.log(error)
             throw {msg:'Erro no método entrarEmLancarAvaliacao em BuscarDadosNoSig.ts' , error}            
         } 
     } 
@@ -82,14 +83,15 @@ class BuscarDadosNoSig{
                         numeroDeAlunos++
                     }                    
                 }
+                console.log(numeroDeAlunos)
             }while(condicaoParaSairDoWhile != undefined)
-            await driver.findElement(By.name(DadosDoSistema.nameBtnFecharAlunosParaAvaliar)).click()
             await driver.switchTo().defaultContent()                        
             await driver.switchTo().defaultContent() 
+            await driver.findElement(By.css('.close > div:nth-child(1) > span:nth-child(2)')).click() 
             //Existe um elemento que fica impedindo de clicar, isso trata esse problema.
             let elemento = await driver.findElement(By.id('GB_overlay')).catch(() => {})
             if(elemento != undefined){
-                await driver.wait(until.stalenessOf(elemento), 10000)
+                await driver.wait(until.stalenessOf(elemento), 20000)
             }           
             return numeroDeAlunos
         } catch (error) {
@@ -136,16 +138,22 @@ class BuscarDadosNoSig{
                 let situacaoDoAluno = await this.verificarSituacaoDoAluno()
                 let aluno = await this.identificarAluno()  
                 switch(situacaoDoAluno){
-                    case 'Transferido da Escola':                       
-                        await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno)).click()
+                    case 'Transferido da Escola': 
+                        let el = await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno))             
+                        await driver.wait(until.elementIsVisible(el)).click()
+                        //driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno)).click()
                         break                                  
                     case 'alunoEspecial':                   
-                        alunos.push({aluno, alunoEspecial: true}) 
-                        await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno)).click()                    
+                        alunos.push({aluno, alunoEspecial: true})
+                        let el2 = await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno))             
+                        await driver.wait(until.elementIsVisible(el2)).click() 
+                        //await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno)).click()                    
                         break              
                     case 'alunoNormal':                                    
-                        alunos.push({aluno}) 
-                        await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno)).click()                    
+                        alunos.push({aluno})
+                        let el3 = await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno))             
+                        await driver.wait(until.elementIsVisible(el3)).click() 
+                        //await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno)).click()                    
                         break                        
                 }            
                 await Util.aguardarAjax()
@@ -175,7 +183,8 @@ class BuscarDadosNoSig{
                                             .getText()
                     objetivos.push({
                         codigoDoObjetivo: codigoDoObjetivo,
-                        textoDoObjetivo: textoDoObjetivo
+                        textoDoObjetivo: textoDoObjetivo,
+                        idNumeroDoObjetivo: cont
                     })
                 }            
             }while(condicaoParaSairDoWhile != undefined)        
@@ -241,7 +250,7 @@ class BuscarDadosNoSig{
                         let guias = await driver.getAllWindowHandles()                        
                         await driver.switchTo().window(guias[0])
                         contDisciplina++ 
-                        console.log({disciplinaTxt, objetivos, alunos})
+                        console.log({disciplinaTxt, objetivos, alunos})                        
                         turmas.push({escola, disciplina: disciplinaTxt, alunos, objetivosDeAprendizagens: objetivos, serieAnoFase: textoSerieAnoFase,
                             turma: textoTurma
                         })   
@@ -294,26 +303,31 @@ class BuscarDadosNoSig{
     
                             let textoSerieAnoFase = await driver.findElement(By
                                     .id(DadosDoSistema.idTextoSerieAnoFase + contadorFormatado)).getText()
-    
+                            
                             let textoTurma = await driver.findElement(By
-                                .id(DadosDoSistema.idTextoTurma + contadorFormatado)).getText()                       
+                                    .id(DadosDoSistema.idTextoTurma + contadorFormatado)).getText() 
                             
-                            await driver.findElement(By.id(DadosDoSistema.idBtnLancarAvaliacaoDiario+ contadorFormatado)).click() 
-                            await this.entrarNosFrames()
-                            await this.selecionarBimestreAvaliacao('4')  
-                            await Util.aguardarAjax()   
-                            let objetivos = await this.identificarObjetivos()                                       
-                            let alunos = await this.identificarAlunosPorturma()                        
-                            await Util.aguardarAjax()
-    
-                            await driver.findElement(By.name('BUTTONVOLTAR_0001')).click()
-                            let guias = await driver.getAllWindowHandles()                        
-                            await driver.switchTo().window(guias[0])
-                            await driver.findElement(By.name('BUTTONCLOSE')).click()                       
-                            await driver.switchTo().defaultContent()                        
-                            await driver.switchTo().defaultContent()
-                            
-                              
+                            let objetivos
+                            let alunos
+                            if(textoSerieAnoFase.match(/ENSINO MÉDIO/)){
+                                objetivos = ''
+                                alunos = ''                                
+                            }else{
+                                await driver.findElement(By.id(DadosDoSistema.idBtnLancarAvaliacaoDiario+ contadorFormatado)).click() 
+                                await this.entrarNosFrames()
+                                await this.selecionarBimestreAvaliacao('4')  
+                                await Util.aguardarAjax()   
+                                objetivos = await this.identificarObjetivos()                                       
+                                alunos = await this.identificarAlunosPorturma()                        
+                                await Util.aguardarAjax()
+                                await driver.findElement(By.name('BUTTONVOLTAR_0001')).click()
+                                let guias = await driver.getAllWindowHandles()                        
+                                await driver.switchTo().window(guias[0])
+                                await driver.findElement(By.name('BUTTONCLOSE')).click()                       
+                                await driver.switchTo().defaultContent()                        
+                                await driver.switchTo().defaultContent()
+                            } 
+
                             turmas.push({escola, codigoSerieAnoFaze: contadorDeSerieAnoFase, serieAnoFase: textoSerieAnoFase, disciplina: textoDisciplina, 
                                             turma: textoTurma, numeroDoID: contadorFormatado, alunos, objetivosDeAprendizagens: objetivos})  
                             contador++                        
