@@ -23,9 +23,20 @@ class ConexaoComBd{
         }
     }
 
+    public async salvarNewTurmas(turmas:any,userId:string){
+        try {
+            await api.put(`core/addNewTurmas/${userId}`, {
+                turmas: turmas
+            })            
+        } catch (error) {            
+            console.log('Erro ao salvarNewTurmas em ConexaoComBd.ts') 
+            console.log(error)
+        }
+    }
+
     public async usersComAlteracao(){
         try {
-            const response = await api.get('/usersComAlteracao')
+            const response = await api.get('core/usersComAlteracao')
             return response.data
         } catch (error) {
             console.log(error.response.data.error)
@@ -34,7 +45,7 @@ class ConexaoComBd{
 
     public async turmasComAlteracao(userId:string){
         try {
-            const response = await api.get(`/turmasComAlteracao/${userId}`)
+            const response = await api.get(`core/turmas/ComAlteracao/${userId}`)
             console.log(response.data)
             return response.data
         } catch (error) {
@@ -97,11 +108,23 @@ class ConexaoComBd{
 
     }
 
-    public async salvarDiarioSalvoNoSigEduca(data: string, turmaId: string){
+    public async salvarDiarioDePresensaSalvoNoSigEduca(data: string, turmaId: string){
         try {
             await api.put('/core/turmas/diarioDePresencaSalvoNoSigEduca', {
                 data,
                 turmaId
+            })
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    public async salvarDiarioDeConteudoSalvoNoSigEduca(data: string, turmaId: string, msgRetorno: string){
+        try {
+            await api.put('/core/turmas/diarioDeConteudoSalvoNoSigEduca', {
+                data,
+                turmaId,
+                msgRetorno, 
             })
         } catch (error) {
             console.log(error)
@@ -130,6 +153,14 @@ class ConexaoComBd{
     public async marcarDiarioDePresencaDisponiveisComoFalse(id:string){
         try {
             await api.put(`core/turmas/diariosDePresencaDisponiveis/${id}`)
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    public async marcarDiarioDeConteudoDisponiveisComoFalse(id:string){
+        try {
+            await api.put(`core/turmas/diariosDeConteudoDisponiveis/${id}`)
         } catch (error) {
             console.log(error)
         }

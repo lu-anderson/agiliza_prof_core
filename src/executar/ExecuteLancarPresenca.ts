@@ -63,7 +63,7 @@ class ExecuteLancarPresenca{
 
                         console.log(`Fim do lançamento de presença do ${k}º diário da ${j}º turma ...  `)
 
-                        await this.bd.salvarDiarioSalvoNoSigEduca( diariosDoUsuario[j].diarios[k].data, 
+                        await this.bd.salvarDiarioDePresensaSalvoNoSigEduca( diariosDoUsuario[j].diarios[k].data, 
                                                                 diariosDoUsuario[j]._id )
 
                         console.log(`Diario de Presença salvo no SigEduca`)
@@ -86,7 +86,7 @@ class ExecuteLancarPresenca{
                 await new ExecuteLancarConteudo().iniciar( usuariosComDiariosParaLancar[i]._id )
                 console.log(`Fim do lançamento de conteúdo do ${i}º usuário`)  
 
-                //await this.bd.marcarExistemDiariosParaLancarComoFalse( usuariosComDiariosParaLancar[i]._id )              
+                await this.bd.marcarExistemDiariosParaLancarComoFalse( usuariosComDiariosParaLancar[i]._id )              
             }
         }else{
             console.log('Não existem diários para lançar')

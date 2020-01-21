@@ -2,7 +2,7 @@ import {driver} from '../Inicializar'
 import { until, By, Key, Button, Origin } from 'selenium-webdriver';
 import {DadosSistemaLancarConteudo, DadosDoSistema} from '../DadosDoSistema';
 import { Util } from '../util';
-import { elementIsVisible } from 'selenium-webdriver/lib/until';
+import { elementIsVisible, alertIsPresent, elementLocated } from 'selenium-webdriver/lib/until';
 import entradaNoConsole from 'readline-sync'
 
 
@@ -78,6 +78,77 @@ class LancarConteudo{
             throw {msg:'Erro no método selecionarBimestreAvaliacao em LancarAvaliacao.ts', error }
         }
     }
+
+    public async lancarConteudo(diarioDeConteudo: any){
+        for(let j = 0; j < diarioDeConteudo.diarioDeConteudo.length; j++){
+            if(j%2 === 0){
+                let contadorFormatado = await Util.formatarContador(j+1)
+                await driver.wait(until.elementLocated(By.id(`vGGEDCONPROGDTA_000100${contadorFormatado}`)),15000)
+                .sendKeys(diarioDeConteudo.diarioDeConteudo[j].data.replace(/ /g,""))
+                console.log(`vGGEDCONPROGDTA_000100${contadorFormatado}`)
+                await driver.wait(until.elementLocated(By.id(`vGGEDCONPROGDSC_000100${contadorFormatado}`)),15000)
+                .sendKeys(diarioDeConteudo.diarioDeConteudo[j].conteudo.texto)
+            }
+
+            if(j%2 === 1){
+                let contadorFormatado = await Util.formatarContador(j)
+                await driver.wait(until.elementLocated(By.id(`vGGEDCONPROGDTA_000200${contadorFormatado}`)),15000)
+                .sendKeys(diarioDeConteudo.diarioDeConteudo[j].data.replace(/ /g,""))
+                await driver.wait(until.elementLocated(By.id(`vGGEDCONPROGDSC_000200${contadorFormatado}`)),15000)
+                .sendKeys(diarioDeConteudo.diarioDeConteudo[j].conteudo.texto)
+            }
+        }
+    }
+
+    public async clicarEmIncluir(){
+        await driver.findElement(By.name('BUTTONCONFIRMAR')).click()
+    }
+
+    public async confirmarInclusao(){
+        let alerta = await driver.wait(alertIsPresent())
+        await alerta.accept()
+    }
+
+    public async analisarMensagemDeRetorno(){
+        let janelas  
+
+        do{
+            janelas = await driver.getAllWindowHandles()
+        }while(janelas.length !== 3)
+
+        await driver.switchTo().window(janelas[2])
+
+        let elementoAviso = await driver
+        .wait(until.elementLocated(By.css('.aviso')),15000)
+
+        let txtAviso
+        do{
+            txtAviso = await elementoAviso.getText()            
+        }while(txtAviso === "")
+        
+        await driver.close()
+        janelas = await driver.getAllWindowHandles()
+        await driver.switchTo().window(janelas[1])
+        await driver.close()
+        janelas = await driver.getAllWindowHandles()        
+        await driver.switchTo().window(janelas[0])
+
+        return txtAviso
+    }
+
+    public async sairDosIframes(){
+        await driver.switchTo().defaultContent()                        
+        await driver.switchTo().defaultContent()
+    }
+
+    public async voltarParaSelecionarTurma(){
+        await Util.aguardarAjax()
+        console.log('voltarParaSelecionarTurma 1')
+        await driver.findElement(By.css('.close > div:nth-child(1) > span:nth-child(2)')).click()
+        console.log('voltarParaSelecionarTurma 2')      
+    }
+
+
 
 }
 

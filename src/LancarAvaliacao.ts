@@ -3,6 +3,7 @@ import { until, By } from 'selenium-webdriver';
 import {DadosDoSistema} from './DadosDoSistema';
 import { Util } from './util';
 import ConexaoComBd from './ConexaoComBd'
+import { elementLocated } from 'selenium-webdriver/lib/until';
 
 
 class LancarAvaliacao{
@@ -190,26 +191,96 @@ class LancarAvaliacao{
         }
     }
 
+    private async identificarNumeroDeAlunos(){ 
+        let contSemformatar = 0
+        let condicaoParaSairDoWhile
+        let numeroDeAlunos = 0       
+        try{            
+            await driver.findElement(By.id(DadosDoSistema.idSelecionarAlunoParaAvaliar)).click()
+            await this.entrarNosFrames()
+            do{
+                contSemformatar++
+                let cont = await Util.formatarContador(contSemformatar)
+                let tituloTabela = await driver.wait(until.elementLocated({ id: 'TTITULO' }),20000)
+                await driver.wait(until.elementIsVisible(tituloTabela), 20000) 
+                condicaoParaSairDoWhile = await driver.findElement(By.id(DadosDoSistema.idAlunoParaAvaliar+cont)).catch(()=>{})
+                if(condicaoParaSairDoWhile != undefined){                    
+                    let disponivelParaAvaliar = await driver.findElement(By.id(DadosDoSistema.idDisponivelParaAvaliar+cont)).getAttribute('src')                    
+                    if(disponivelParaAvaliar === 'http://sigeduca.seduc.mt.gov.br/ged/imagem/check.gif'){
+                        numeroDeAlunos++
+                    }                    
+                }
+                console.log(numeroDeAlunos)
+            }while(condicaoParaSairDoWhile != undefined)
+            await driver.switchTo().defaultContent()                        
+            await driver.switchTo().defaultContent() 
+            await driver.findElement(By.css('.close > div:nth-child(1) > span:nth-child(2)')).click() 
+            //Existe um elemento que fica impedindo de clicar, isso trata esse problema.
+            let elemento = await driver.findElement(By.id('GB_overlay')).catch(() => {})
+            if(elemento != undefined){
+                await driver.wait(until.stalenessOf(elemento), 20000)
+            }           
+            return numeroDeAlunos
+        } catch (error) {
+            console.log(error)
+            throw {msg:'Erro no método identificarNumeroDeAlunos em BuscarDadosNoSig.ts', error }
+        }     
+    }
+
+    private async verificarSeFoiAvaliado(){
+        let nameAB = 'vGRIDGEDAGRAVAPRMAVAAB_00010001'
+        let nameB = 'vGRIDGEDAGRAVAPRMAVAB_00010001'
+        let nameP = 'vGRIDGEDAGRAVAPRMAVAP_00010001'
+        let nameA = 'vGRIDGEDAGRAVAPRMAVAA_00010001'
+        let nameOAP = 'vGRIDGEDAGRAVAPRMAVAOAP_00010001'
+        let nameONT = 'vGRIDGEDAGRAVAPRMAVAONT_00010001'
+
+        
+        let elementoAB = await driver.findElement(By.name(nameAB)).isSelected()
+        let elementoB = await driver.findElement(By.name(nameB)).isSelected()
+        let elementoP = await driver.findElement(By.name(nameP)).isSelected()
+        let elementoA = await driver.findElement(By.name(nameA)).isSelected()
+        let elementoOAP = await driver.findElement(By.name(nameOAP)).isSelected()
+        let elementoONT = await driver.findElement(By.name(nameONT)).isSelected()
+
+        if(elementoAB || elementoB || elementoP|| elementoA || elementoOAP || elementoONT){
+            console.log('Aluno avaliado na disciplina')
+            return true
+        }else{
+            return false
+        }
+    }
+
     private async lancarParaTurma(turma: any){
         console.log(turma)
+
+        let elemento = await driver.findElement(By.id('GB_overlay')).catch(() => {})
+        if(elemento != undefined){
+            await driver.wait(until.stalenessOf(elemento), 10000)
+        } 
+        
         await driver.findElement(By
             .css('#vGERMATCOD2 > option:nth-child('+turma.codigoSerieAnoFaze+')')).click()
 
         await Util.aguardarAjax()
         await driver.findElement(By.id(DadosDoSistema.idBtnLancarAvaliacaoDiario+ turma.numeroDoID)).click() 
         await this.entrarNosFrames()
-        await this.selecionarBimestreAvaliacao('3')
+        await this.selecionarBimestreAvaliacao('5')
        
         let situacaoDoAluno 
         let aluno
         let objetoAluno
         let objetoMedidasAdotadas
-        console.log(turma.alunos.length)
+        await Util.aguardarAjax()
+        let numeroDeAluno = await this.identificarNumeroDeAlunos()
         //turma.alunos.length
-        for(let i = 0; i<=turma.alunos.length; i++){
-            console.log(i)
+        for(let i = 0; i<numeroDeAluno; i++){
             await Util.aguardarAjax()
-            situacaoDoAluno = await this.verificarSituacaoDoAluno()    
+            let avaliadoNaDisciplinaDeArea
+            situacaoDoAluno = await this.verificarSituacaoDoAluno()   
+            
+            let nomeDoAluno = await driver.findElement(By.id('span_vEGEDALUNOM_0001')).getText()
+            console.log(nomeDoAluno) 
             console.log(situacaoDoAluno)        
             switch(situacaoDoAluno){
                 case 'Transferido da Escola':                        
@@ -219,27 +290,201 @@ class LancarAvaliacao{
                     await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno)).click()                   
                     break  
                 case 'alunoEspecial':
-                    console.log('aluno apto para ser avaliado na condição de aluno especial')                         
-                    aluno = await  driver.wait(until.elementLocated({id: DadosDoSistema.idAluno}),10000).getText()
-                    objetoAluno = this.encontrarAlunoNoArray(turma.alunos, aluno)
-                    
-                    objetoMedidasAdotadas = await this.clicarNosObjetivos(turma.objetivosDeAprendizagens, objetoAluno)
-                    await this.lancarMedidasAdotadas(objetoMedidasAdotadas)
-
-                    await driver.findElement({id: DadosDoSistema.idObservacoes}).sendKeys(objetoAluno.observacoes)                        
-                    await driver.findElement({id: DadosDoSistema.idApoioPedagogico}).sendKeys(objetoAluno.apoioPedagogico)
-                    await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno)).click()
-                    break                    
+                    avaliadoNaDisciplinaDeArea = await this.verificarSeFoiAvaliado()
+                    if(avaliadoNaDisciplinaDeArea){
+                        await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno)).click()
+                    }else{
+                        console.log('aluno apto para ser avaliado na condição de aluno especial')                         
+                        aluno = await  driver.wait(until.elementLocated({id: DadosDoSistema.idAluno}),10000).getText()
+                        objetoAluno = this.encontrarAlunoNoArray(turma.alunos, aluno)
+                        
+                        objetoMedidasAdotadas = await this.clicarNosObjetivos(turma.objetivosDeAprendizagens, objetoAluno)
+                        await this.lancarMedidasAdotadas(objetoMedidasAdotadas)
+    
+                        await driver.findElement({id: DadosDoSistema.idObservacoes}).sendKeys(objetoAluno.observacoes)                        
+                        await driver.findElement({id: DadosDoSistema.idApoioPedagogico}).sendKeys(objetoAluno.apoioPedagogico)
+                        await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno)).click()
+                        break   
+                    }
+                                    
                 case 'alunoNormal':
-                    console.log('Aluno apto para ser avaliado')                        
-                    aluno = await  driver.wait(until.elementLocated({id: DadosDoSistema.idAluno}),10000).getText()
-                    objetoAluno = this.encontrarAlunoNoArray(turma.alunos, aluno)
+                    avaliadoNaDisciplinaDeArea = await this.verificarSeFoiAvaliado()
+                    if(avaliadoNaDisciplinaDeArea){
+                        await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno)).click()
+                    }else{
+                        console.log('Aluno apto para ser avaliado')  
+                        await this.verificarSeFoiAvaliado()                      
+                        aluno = await  driver.wait(until.elementLocated({id: DadosDoSistema.idAluno}),10000).getText()
+                        objetoAluno = this.encontrarAlunoNoArray(turma.alunos, aluno)
+    
+                        objetoMedidasAdotadas = await this.clicarNosObjetivos(turma.objetivosDeAprendizagens, objetoAluno)
+                        await this.lancarMedidasAdotadas(objetoMedidasAdotadas)
+                        
+                        await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno)).click()               
+                        break 
+                    }
+                                   
+            }                                   
+        }
 
-                    objetoMedidasAdotadas = await this.clicarNosObjetivos(turma.objetivosDeAprendizagens, objetoAluno)
-                    await this.lancarMedidasAdotadas(objetoMedidasAdotadas)
-                    
-                    await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno)).click()               
-                    break                
+        await Util.aguardarAjax()
+        await driver.findElement(By.name('BUTTONVOLTAR_0001')).click()
+        let guias = await driver.getAllWindowHandles()                        
+        await driver.switchTo().window(guias[0])
+        await driver.findElement(By.name('BUTTONCLOSE')).click()                       
+        await driver.switchTo().defaultContent()                        
+        await driver.switchTo().defaultContent()
+    }
+
+    private async selecionarDisciplina(codDisciplina: any){
+        codDisciplina
+        let inputDisciplina = await driver.wait(until.elementLocated({ id: DadosDoSistema.idCodDisciplina }),10000)
+        await driver.wait(until.elementIsVisible(inputDisciplina), 10000)               
+        await driver.findElement(By.css('#vDISCIPLINAAREACOD > option:nth-child('+codDisciplina+')')).click()
+    }
+
+    
+    /*private async lancarParaTurma(turma: any){
+        console.log(turma)
+
+        let elemento = await driver.findElement(By.id('GB_overlay')).catch(() => {})
+        if(elemento != undefined){
+            await driver.wait(until.stalenessOf(elemento), 10000)
+        } 
+        
+        await driver.findElement(By
+            .css('#vGERMATCOD2 > option:nth-child('+turma.codigoSerieAnoFaze+')')).click()
+
+        await Util.aguardarAjax()
+        await driver.findElement(By.id(DadosDoSistema.idBtnLancarAvaliacaoDiario+ turma.numeroDoID)).click() 
+        await this.entrarNosFrames()
+        await this.selecionarDisciplina(turma.codDisciplina)
+        await Util.aguardarAjax()
+        await this.selecionarBimestreAvaliacao('5')
+       
+        let situacaoDoAluno 
+        let aluno
+        let objetoAluno
+        let objetoMedidasAdotadas
+        await Util.aguardarAjax()
+        let numeroDeAluno = await this.identificarNumeroDeAlunos()
+        //turma.alunos.length
+        for(let i = 0; i<numeroDeAluno; i++){
+            await Util.aguardarAjax()
+            let avaliadoNaDisciplinaDeArea
+            situacaoDoAluno = await this.verificarSituacaoDoAluno()   
+            
+            let nomeDoAluno = await driver.findElement(By.id('span_vEGEDALUNOM_0001')).getText()
+            console.log(nomeDoAluno) 
+            console.log(situacaoDoAluno)        
+            switch(situacaoDoAluno){
+                case 'Transferido da Escola':                        
+                    await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno)).click()
+                    break
+                case 'alunoAvaliado':
+                    await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno)).click()                   
+                    break  
+                case 'alunoEspecial':
+                    avaliadoNaDisciplinaDeArea = await this.verificarSeFoiAvaliado()
+                    if(avaliadoNaDisciplinaDeArea){
+                        await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno)).click()
+                    }else{
+                        console.log('aluno apto para ser avaliado na condição de aluno especial')                         
+                        aluno = await  driver.wait(until.elementLocated({id: DadosDoSistema.idAluno}),10000).getText()
+                        objetoAluno = this.encontrarAlunoNoArray(turma.alunos, aluno)
+                        
+                        objetoMedidasAdotadas = await this.clicarNosObjetivos(turma.objetivosDeAprendizagens, objetoAluno)
+                        await this.lancarMedidasAdotadas(objetoMedidasAdotadas)
+    
+                        await driver.findElement({id: DadosDoSistema.idObservacoes}).sendKeys(objetoAluno.observacoes)                        
+                        await driver.findElement({id: DadosDoSistema.idApoioPedagogico}).sendKeys(objetoAluno.apoioPedagogico)
+                        await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno)).click()
+                        break   
+                    }
+                                    
+                case 'alunoNormal':
+                    avaliadoNaDisciplinaDeArea = await this.verificarSeFoiAvaliado()
+                    if(avaliadoNaDisciplinaDeArea){
+                        await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno)).click()
+                    }else{
+                        console.log('Aluno apto para ser avaliado')  
+                        await this.verificarSeFoiAvaliado()                      
+                        aluno = await  driver.wait(until.elementLocated({id: DadosDoSistema.idAluno}),10000).getText()
+                        objetoAluno = this.encontrarAlunoNoArray(turma.alunos, aluno)
+    
+                        objetoMedidasAdotadas = await this.clicarNosObjetivos(turma.objetivosDeAprendizagens, objetoAluno)
+                        await this.lancarMedidasAdotadas(objetoMedidasAdotadas)
+                        
+                        await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno)).click()               
+                        break 
+                    }
+                                   
+            }                                   
+        }
+
+        await Util.aguardarAjax()
+        await driver.findElement(By.name('BUTTONVOLTAR_0001')).click()
+        let guias = await driver.getAllWindowHandles()                        
+        await driver.switchTo().window(guias[0])
+        await driver.findElement(By.name('BUTTONCLOSE')).click()                       
+        await driver.switchTo().defaultContent()                        
+        await driver.switchTo().defaultContent()
+    }*/
+
+    public async excluirLancamentos(turma: any){
+        await this.entrarEmLancarAvaliacao()
+
+        let elemento = await driver.findElement(By.id('GB_overlay')).catch(() => {})
+        if(elemento != undefined){
+            await driver.wait(until.stalenessOf(elemento), 10000)
+        } 
+        
+        await driver.findElement(By
+            .css('#vGERMATCOD2 > option:nth-child('+turma.codigoSerieAnoFaze+')')).click()
+
+        await Util.aguardarAjax()
+        await driver.findElement(By.id(DadosDoSistema.idBtnLancarAvaliacaoDiario+ turma.numeroDoID)).click() 
+        await this.entrarNosFrames()
+        await this.selecionarBimestreAvaliacao('5')
+
+        await Util.aguardarAjax()
+        let numeroDeAluno = await this.identificarNumeroDeAlunos()
+
+        let situacaoDoAluno
+        for(let i = 0; i<numeroDeAluno; i++){
+            await Util.aguardarAjax()
+            let avaliadoNaDisciplinaDeArea
+            situacaoDoAluno = await this.verificarSituacaoDoAluno()   
+            
+            let nomeDoAluno = await driver.findElement(By.id('span_vEGEDALUNOM_0001')).getText()
+            console.log(nomeDoAluno) 
+            console.log(situacaoDoAluno)        
+            switch(situacaoDoAluno){
+                case 'Transferido da Escola':                        
+                    await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno)).click()
+                    break
+                case 'alunoAvaliado':
+                    await driver.findElement(By.id(DadosDoSistema.nameBtnExcluirAvaliacao)).click()           
+                    break  
+                case 'alunoEspecial':
+                    avaliadoNaDisciplinaDeArea = await this.verificarSeFoiAvaliado()
+                    if(avaliadoNaDisciplinaDeArea){
+                        await driver.findElement(By.id(DadosDoSistema.nameBtnExcluirAvaliacao)).click()  
+                        await Util.aguardarAjax()   
+                        await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno)).click()
+                    }else{
+                        await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno)).click()
+                    }
+                    break                                    
+                case 'alunoNormal':
+                    avaliadoNaDisciplinaDeArea = await this.verificarSeFoiAvaliado()
+                    if(avaliadoNaDisciplinaDeArea){
+                        await driver.findElement(By.id(DadosDoSistema.nameBtnExcluirAvaliacao)).click()  
+                        await Util.aguardarAjax()   
+                        await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno)).click()
+                    }else{
+                        await driver.findElement(By.id(DadosDoSistema.idBtnProximoAluno)).click()
+                    }                               
             }                                   
         }
 
@@ -260,7 +505,7 @@ class LancarAvaliacao{
         console.log('test 04')   
         for(let i = 0; i<= turmas.length; i++){
             await this.lancarParaTurma(turmas[i]) 
-            await this.bd.registrarQueTurmaFoiAvaliadaNoSIg(turmas[i]._id)            
+            //await this.bd.registrarQueTurmaFoiAvaliadaNoSIg(turmas[i]._id)            
         }    
                
     }

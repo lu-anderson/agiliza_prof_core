@@ -37,8 +37,8 @@ class ExecuteBuscarDados {
                     let escolas = await this.escolasDoUser(this.users[cont])                                   
                     await Inicializar.logar() 
                     let turmas
-                    console.log(this.users[cont].pedagogo)
-                    if(this.users[cont].pedagogo){
+                    console.log(this.users[cont])
+                    if(this.users[cont].isPedagogo){
                         console.log('pedagogo')
                         turmas = await new BuscarDadosSig().buscarTurmaPegadogo(escolas)
                     }else{
@@ -47,7 +47,8 @@ class ExecuteBuscarDados {
                     }
                      
                                  
-                    await this.bd.salvarTurmas(turmas, this.users[cont]._id)                
+                    //await this.bd.salvarNewTurmas(turmas, this.users[cont]._id) 
+                    await this.bd.salvarTurmas(turmas, this.users[cont]._id)               
                     if(escolas.length !== 1){
                         await driver.findElement(By.xpath('/html/body/form/p[1]/table/tbody/tr[2]/td/div/table/tbody/tr[3]/td/div/div/table/tbody/tr/td[4]')).click()
                     }else{

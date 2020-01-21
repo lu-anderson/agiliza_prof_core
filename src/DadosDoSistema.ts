@@ -13,6 +13,7 @@ export const DadosDoSistema = {
     idCampoSenha: 'vGERUSUSNH',
     idCodigoDeSeguranca: 'vTOKENINFORMADO',
     idBtnConfirmarAno: 'IMAGE3',
+    idSelectAnoLetivo: 'vANOLETIVO',
     idBtnGED: 'vGERIMGSE',
     idBtnEntrar: 'IMAGE1',
     idSelecionarSubModulo: 'vIMGSUBMODULO_0001',
@@ -42,8 +43,9 @@ export const DadosDoSistema = {
     idInputDatasIni : 'vDATAINI',
     idInputDatasFim : 'vDATAFIN',    
     idInputNumeroAulas : 'vNUMAULAS_0001',
+    
 
-
+    nameBtnExcluirAvaliacao: 'BUTTONEXCLUIR_0001',
     nameBtnLancarAvaliacao2: 'BUTTONLANCAR',
     nameBtnAtualizarLotacao: 'BREFRESH',
     nameBtnFecharAlunosParaAvaliar: 'BUTTONFECHAR',

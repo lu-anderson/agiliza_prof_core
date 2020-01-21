@@ -70,8 +70,10 @@ export {driver, By}
 
     private static async confirmarAnoLetivo(){
         await driver.wait(until.urlIs(DadosDoSistema.urlSegundaPagina), 10000)
-        await driver.wait(until.elementLocated({ id: DadosDoSistema.idBtnConfirmarAno }),10000)
-        await driver.executeScript(DadosDoSistema.scriptSelecaoAnoLetivo) 
+        await driver.wait(until.elementLocated({id: DadosDoSistema.idSelectAnoLetivo}), 10000)
+        await (await driver.findElement(By.xpath("//select[@id='"+DadosDoSistema.idSelectAnoLetivo+"']/option["+ "3" + "]"))).click()
+        //await driver.wait(until.elementLocated({ id: DadosDoSistema.idBtnConfirmarAno }),10000)
+        //await driver.executeScript(DadosDoSistema.scriptSelecaoAnoLetivo) 
     }
 
     private static async selecionarGED(){

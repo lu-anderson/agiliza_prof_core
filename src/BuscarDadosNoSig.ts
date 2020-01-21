@@ -2,6 +2,7 @@ import {driver} from './Inicializar'
 import { until, By, Key, Button, Origin } from 'selenium-webdriver';
 import {DadosDoSistema} from './DadosDoSistema';
 import { Util } from './util';
+import entradaNoConsole from 'readline-sync'
 
 
 class BuscarDadosNoSig{
@@ -35,21 +36,30 @@ class BuscarDadosNoSig{
             await driver.findElement(By.xpath("//select[@id='"+DadosDoSistema.idInputBimestre+"']/option["+ bimestre + "]"))
                 .click()       
             
-            await Util.aguardarAjax()        
+            await Util.aguardarAjax()   
+
+            let verificarAtribuicao = await driver.findElement(By.className('erro')).catch(() => {})      
             
-            let elementoBtnLancarAvaliacao2 = await driver.wait(
-                                                until.elementLocated(By.name(DadosDoSistema.nameBtnLancarAvaliacao2)),10000)
-            await elementoBtnLancarAvaliacao2.click()
-            
-            let guias
-            do {
+            if(verificarAtribuicao !== undefined){
+                return false
+            }else{
+
+                let elementoBtnLancarAvaliacao2 = await driver.wait(
+                    until.elementLocated(By.name(DadosDoSistema.nameBtnLancarAvaliacao2)),10000)
+                await elementoBtnLancarAvaliacao2.click()
+
+                let guias
+                do {
                 guias = await driver.getAllWindowHandles()            
                 if(guias.length != 2){
-                    await elementoBtnLancarAvaliacao2.click()
-                    guias = await driver.getAllWindowHandles() 
+                await elementoBtnLancarAvaliacao2.click()
+                guias = await driver.getAllWindowHandles() 
                 }                      
-            } while(guias.length == 1);  
-            await driver.switchTo().window(guias[1])
+                } while(guias.length == 1);  
+                await driver.switchTo().window(guias[1])
+            }
+            
+            
         } catch (error) {
             throw {msg:'Erro no método selecionarBimestreAvaliacao em BuscarDadosNoSig.ts', error }
         }
@@ -64,6 +74,49 @@ class BuscarDadosNoSig{
             throw {msg:'Erro no método identificarNumeroDeAlunos em BuscarDadosNoSig.ts' , error}
         }        
     }*/
+    private async selecionarBimestreTurmaDeEnsinoMedio(bimestre:string) {
+        try {  
+            //Selecinando o bimestre        
+            let inputBimestre = await driver.wait(until.elementLocated({ id: DadosDoSistema.idInputBimestre }),10000)
+            await driver.wait(until.elementIsVisible(inputBimestre), 10000)
+            
+            await driver.findElement(By.xpath("//select[@id='"+DadosDoSistema.idInputBimestre+"']/option["+ bimestre + "]"))
+                .click()    
+        } catch (error) {
+            throw {msg:'Erro no método selecionarBimestreTurmaDeEnsinoMedio em BuscarDadosNoSig.ts', error }
+        }
+    }
+
+    private async buscarAlunosDeEnsinoMedio(){
+        let contSemformatar = 0
+        let condicaoParaSairDoWhile
+        let alunos = []
+        try{
+            await Util.aguardarAjax()
+            do{
+                
+                contSemformatar++
+                let cont = await Util.formatarContador(contSemformatar)
+                let elementoDeControle = await driver.wait(until.elementLocated({ id: 'span_vGRIDGEDALUNOM_0001' }),20000)
+                await driver.wait(until.elementIsVisible(elementoDeControle))
+                condicaoParaSairDoWhile = await driver.findElement(By.id(`span_vGRIDGEDALUNOM_00${cont}`)).catch(()=>{})
+                if(condicaoParaSairDoWhile != undefined){                    
+                    let disponivelParaAvaliar = await driver.findElement(By.id(`vIMGINCLUIDOALTERADO_00${cont}`)).getAttribute('src')                                       
+                    if(disponivelParaAvaliar === 'http://sigeduca.seduc.mt.gov.br/ged/imagem/09.png' || 'http://sigeduca.seduc.mt.gov.br/ged/imagem/02.png'){
+                        let txtAluno = await driver.findElement(By.id(`span_vGRIDGEDALUNOM_00${cont}`)).getText()
+                        let txtCodigoAluno = await driver.findElement(By.id(`span_vGRIDGEDALUCOD_00${cont}`)).getText()
+                        let aluno = `${txtCodigoAluno} - ${txtAluno}`
+                        alunos.push({aluno})                        
+                    }                    
+                }
+            }while(condicaoParaSairDoWhile != undefined)  
+            return alunos 
+        }catch(error){
+            console.log(error)
+        }
+        
+    }
+
     private async identificarNumeroDeAlunos(){ 
         let contSemformatar = 0
         let condicaoParaSairDoWhile
@@ -195,6 +248,7 @@ class BuscarDadosNoSig{
     }
     
     public async buscarTurmaPegadogo(escolaUser:any){
+        console.log('Teste')
         let turma
         let turmas = []
         let contDisciplina = 2
@@ -264,18 +318,27 @@ class BuscarDadosNoSig{
         }
     }
 
+    private async verificarAtribuicao(){
+        let elementoErro = await driver.findElement(By.className('erro')).catch(() => {})  
+        
+    }
+
     private async buscarTurmas(escola:string){
         try {
-            await this.entrarEmLancarAvaliacao()        
-            let contadorDeSerieAnoFase = 2 
+            await this.entrarEmLancarAvaliacao()  
+
+            //let contadorDeSerieAnoFase = 2 ]
+            let contadorDeSerieAnoFase = 2
             let elementoSerieAnoFase 
             let turma       
             let turmas = []
+            let erro
                     
-            do{            
+            do{    
+                console.log('contadorDeSerieAnoFase: ' + contadorDeSerieAnoFase)        
                 elementoSerieAnoFase = await driver.findElement(By
                                         .css('#vGERMATCOD2 > option:nth-child('+contadorDeSerieAnoFase+')')).catch(() => {})            
-                
+                console.log(elementoSerieAnoFase)
                 if(elementoSerieAnoFase != undefined){                
                     //Existe um elemento que fica impedindo de clicar em 'elementoSerieAnoFase', isso trata esse problema.
                     let elemento = await driver.findElement(By.id('GB_overlay')).catch(() => {})
@@ -289,8 +352,10 @@ class BuscarDadosNoSig{
                     do {                    
                         let contadorFormatado = await Util.formatarContador(contador)              
                         turma = await driver.findElement(By.id(DadosDoSistema.idBtnLancarAvaliacaoDiario + contadorFormatado))
-                                .catch(() => {})                             
+                                .catch(() => {})                           
                         
+                        
+
                         if(turma != undefined){
                             //Existe um elemento que fica impedindo de clicar em 'elementoSerieAnoFase', isso trata esse problema.
                             let elemento = await driver.findElement(By.id('GB_overlay')).catch(() => {})
@@ -310,28 +375,45 @@ class BuscarDadosNoSig{
                             let objetivos
                             let alunos
                             if(textoSerieAnoFase.match(/ENSINO MÉDIO/)){
-                                objetivos = ''
-                                alunos = ''                                
+                                await driver.findElement(By.id(DadosDoSistema.idBtnLancarAvaliacaoDiario+ contadorFormatado)).click() 
+                                await this.entrarNosFrames()
+                                await this.selecionarBimestreTurmaDeEnsinoMedio('5') 
+                                alunos = await this.buscarAlunosDeEnsinoMedio()  
+                                await driver.switchTo().defaultContent()                        
+                                await driver.switchTo().defaultContent()  
+                                await driver.findElement(By.css('.close > div:nth-child(1) > span:nth-child(2)')).click()                                
+                                objetivos = ''                               
                             }else{
                                 await driver.findElement(By.id(DadosDoSistema.idBtnLancarAvaliacaoDiario+ contadorFormatado)).click() 
                                 await this.entrarNosFrames()
-                                await this.selecionarBimestreAvaliacao('4')  
-                                await Util.aguardarAjax()   
-                                objetivos = await this.identificarObjetivos()                                       
-                                alunos = await this.identificarAlunosPorturma()                        
-                                await Util.aguardarAjax()
-                                await driver.findElement(By.name('BUTTONVOLTAR_0001')).click()
-                                let guias = await driver.getAllWindowHandles()                        
-                                await driver.switchTo().window(guias[0])
-                                await driver.findElement(By.name('BUTTONCLOSE')).click()                       
-                                await driver.switchTo().defaultContent()                        
-                                await driver.switchTo().defaultContent()
+                                erro = await this.selecionarBimestreAvaliacao('5')  
+                                if(erro === false){
+                                    console.log(erro)
+                                    await driver.findElement(By.name('BUTTONCLOSE')).click()                       
+                                    await driver.switchTo().defaultContent()                        
+                                    await driver.switchTo().defaultContent()
+                                }else{
+                                    await Util.aguardarAjax() 
+                                    objetivos = await this.identificarObjetivos()                                       
+                                    alunos = await this.identificarAlunosPorturma()                        
+                                    await Util.aguardarAjax()
+                                    await driver.findElement(By.name('BUTTONVOLTAR_0001')).click()
+                                    let guias = await driver.getAllWindowHandles()                        
+                                    await driver.switchTo().window(guias[0])
+                                    await driver.findElement(By.name('BUTTONCLOSE')).click()                       
+                                    await driver.switchTo().defaultContent()                        
+                                    await driver.switchTo().defaultContent()
+                                }    
+                                
+                            }
+                            if(erro !== false){
+                                turmas.push({escola, codigoSerieAnoFaze: contadorDeSerieAnoFase, serieAnoFase: textoSerieAnoFase, disciplina: textoDisciplina, 
+                                    turma: textoTurma, numeroDoID: contadorFormatado, alunos, objetivosDeAprendizagens: objetivos}) 
                             } 
-
-                            turmas.push({escola, codigoSerieAnoFaze: contadorDeSerieAnoFase, serieAnoFase: textoSerieAnoFase, disciplina: textoDisciplina, 
-                                            turma: textoTurma, numeroDoID: contadorFormatado, alunos, objetivosDeAprendizagens: objetivos})  
                             contador++                        
                         }
+                        console.log('turma')
+                        console.log(turma)
                     }while (turma != undefined); 
                 }
                 contadorDeSerieAnoFase++

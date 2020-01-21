@@ -43,10 +43,11 @@ class LancarPresenca {
     public async selecionarDatas(data: string, cargaHoraria: number){ 
         await Util.aguardarAjax()
         await driver.wait(until.elementLocated(By.xpath("//input[@id='vDATAINI']"))).then(el => el.click())
-        await driver.wait(until.elementLocated({ id: DadosDoSistema.idInputDatasIni })).sendKeys(data)
+        console.log()
+        await driver.wait(until.elementLocated({ id: DadosDoSistema.idInputDatasIni })).sendKeys(data.replace(/ /g,""))
 
         await driver.wait(until.elementLocated(By.xpath("//input[@id='vDATAFIN']"))).then(el => el.click())
-        await driver.wait(until.elementLocated({ id: DadosDoSistema.idInputDatasFim })).sendKeys(data)
+        await driver.wait(until.elementLocated({ id: DadosDoSistema.idInputDatasFim })).sendKeys(data.replace(/ /g,""))
         
         await driver.findElement(By.name(DadosDoSistema.nameBtnIncluir)).click()
         

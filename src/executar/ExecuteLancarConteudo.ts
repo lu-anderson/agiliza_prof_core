@@ -28,26 +28,32 @@ class ExecuteLancarConteudo{
 
             await this.lancarConteudo.entrarNosIframes()
 
-            await this.lancarConteudo.selecionarBimestreAvaliacao('3')
+            await this.lancarConteudo.selecionarBimestreAvaliacao('5')
 
-            for(let j = 0; j < diariosDeConteudo[i].diarioDeConteudo.length; j++){
-                if(j%2 === 0){
-                    let contadorFormatado = await Util.formatarContador(j+1)
-                    await driver.wait(until.elementLocated(By.id(`vGGEDCONPROGDTA_000100${contadorFormatado}`)),15000)
-                    .sendKeys(diariosDeConteudo[i].diarioDeConteudo[j].data)
-                    console.log(`vGGEDCONPROGDTA_000100${contadorFormatado}`)
-                    await driver.wait(until.elementLocated(By.id(`vGGEDCONPROGDSC_000100${contadorFormatado}`)),15000)
-                    .sendKeys(diariosDeConteudo[i].diarioDeConteudo[j].conteudo.texto)
-                }
 
-                if(j%2 === 1){
-                    let contadorFormatado = await Util.formatarContador(j)
-                    await driver.wait(until.elementLocated(By.id(`vGGEDCONPROGDTA_000200${contadorFormatado}`)),15000)
-                    .sendKeys(diariosDeConteudo[i].diarioDeConteudo[j].data)
-                    await driver.wait(until.elementLocated(By.id(`vGGEDCONPROGDSC_000200${contadorFormatado}`)),15000)
-                    .sendKeys(diariosDeConteudo[i].diarioDeConteudo[j].conteudo.texto)
-                }
-            }            
+            await this.lancarConteudo.lancarConteudo(diariosDeConteudo[i])  
+            
+            await this.lancarConteudo.clicarEmIncluir()
+
+            await this.lancarConteudo.confirmarInclusao()
+
+            await Util.aguardarAjax()
+
+            let msgRetorno = await this.lancarConteudo.analisarMensagemDeRetorno()
+
+
+            await diariosDeConteudo[i].diarioDeConteudo.forEach(async (element: any) => {
+                await this.bd.salvarDiarioDeConteudoSalvoNoSigEduca(
+                    element.data, diariosDeConteudo[i]._id, msgRetorno)
+            })
+
+            await this.bd.marcarDiarioDeConteudoDisponiveisComoFalse(diariosDeConteudo[i]._id)
+
+           
+
+            await this.lancarConteudo.sairDosIframes()
+
+            await this.lancarConteudo.voltarParaSelecionarTurma()
         }
     }
 }
